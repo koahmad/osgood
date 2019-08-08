@@ -10,6 +10,7 @@ const statusSym = getPrivate('status');
 const statusTextSym = getPrivate('statusText');
 const bodySym = getPrivate('body');
 const _bodyStringSym = getPrivate('_bodyString');
+const typeSym = getPrivate('type');
 
 export default class Response {
   // #rawHeaders; // not yet instantiated
@@ -18,9 +19,11 @@ export default class Response {
   // #statusText;
   // #body;
   // #_bodyString;
+  // #type;
   constructor(body, init = {}) {
     this[statusSym] = init.status || 200;
     this[statusTextSym] = init.statusText || 'OK';
+    this[typeSym] = 'basic';
     if (!(init.headers instanceof Headers)) {
       this[rawHeadersSym] = init.headers;
     } else {
@@ -56,6 +59,10 @@ export default class Response {
 
   get _bodyString() {
     return this[_bodyStringSym];
+  }
+
+  get type(){
+    return this[typeSym];
   }
 
 }

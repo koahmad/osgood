@@ -82,6 +82,16 @@ export default async function fetch(input, init) {
   const headers = input.headers;
   const method = input.method.toUpperCase();
 
+  // console.log("Headers", headers);
+
+  if (!headers.has('Accept')) {
+    headers.append('Accept', '*/*');
+  }
+
+  if (!headers.has('Accept-Language')) {
+    headers.append('Accept-Language', '*');
+  }
+
   if (typeof input._bodyString === 'string') {
     _fetch(url, headers, method, input._bodyString, fetchId, 'string');
   } else if (typeof input.body === 'object') {

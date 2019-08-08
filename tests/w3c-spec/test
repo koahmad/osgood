@@ -1,0 +1,71 @@
+#!/usr/bin/env node
+'use strict';
+
+const { exec } = require('child_process');
+const http = require('http');
+
+let resourceServerStarted = false;
+let testServerStarted = false;
+
+const resourceServer = exec('cargo run -- ./fetch/resource-server.js');
+
+resourceServer.stdout.on('data', (data) => {
+  console.log(data);
+  if (data.includes('Application has started')) {
+    resourceServerStarted = true;
+    run();
+  }
+});
+
+// resourceServer.stderr.on('data', (data) => {
+//   console.log('[resource] ', data);
+// });
+
+
+const testServer = exec('cargo run -- ./fetch/test-server.js');
+let failedCount = 0;
+let passedCount = 0;
+
+testServer.stdout.on('data', (data) => {
+  console.log(data);
+  if (data.includes('Application has started')) {
+    testServerStarted = true;
+    run();
+  }
+
+  if (data.includes('[FAILED]')) {
+    failedCount++;
+  }
+  if (data.includes('[PASSED]')) {
+    passedCount++;
+  }
+  
+});
+
+// testServer.stderr.on('data', (data) => {
+//   console.log('[test] ', data);
+// });
+
+
+process.on('exit', () => {
+  resourceServer.kill();
+  testServer.kill();
+});
+
+
+
+function run() {
+  if (resourceServerStarted && testServerStarted) {
+    const req = http.get('http://localhost:3000/run', (res) => {
+      res.setEncoding('utf8');
+      res.on('data', (chunk) => {
+      });
+      res.on('end', () => {
+        console.log(`done... ${passedCount} tests passed. ${failedCount} tests failed.`)
+        testServer.kill();
+        resourceServer.kill();
+      });
+    });
+  }
+}
+
